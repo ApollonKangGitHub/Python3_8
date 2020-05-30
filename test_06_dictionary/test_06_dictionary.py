@@ -49,9 +49,9 @@ print("blood: " + str(dictionary['blood']))
 
 #***********************************************************************
 #字典遍历：
-#	遍历key-vlaue键值对-->	for k,v in dict.items():
-#	遍历key-->				for k in dict.keys():
-#	遍历value-->			for v in set(dict.values()):
+#	遍历key-vlaue键值对--> for k,v in dict.items():
+#	遍历key-->             for k in dict.keys():
+#	遍历value-->           for v in set(dict.values()):
 #我们可以用
 #	if xxx not in dict.keys(): 
 #	if xxx in dict.keys():
