@@ -8,9 +8,17 @@
 #    version        :1.1
 #    Description    :函数测试（完善test_07_while_input.py的书籍管理系统）
 #    FileName       :test_08_book_management.py
-#    Modify         :使用Python的collections库OrderedDict类优化
+#    Modify         :2020年5月31日18:13:06
+#                        使用Python的collections库OrderedDict类优化
+#                    2020年5月31日23:12:37
+#                         使用json优化文件操作
 #***********************************************************************
+import json
 from collections import OrderedDict
+
+global g_book_set
+global g_json_file_name
+g_json_file_name = r"book_management_system.json"
 
 #-----------------------------------------------------------------------
 #浮点数和整数有效性判断函数
@@ -58,32 +66,33 @@ def tool_str_is_type(value_str = '', type_str = ''):
     return True
 #-----------------------------------------------------------------------
 #数据初始化定义（正常为空，为了测试简单初始化了两本书作为模板）
+#Modify：2020年5月31日23:52:56，使用json后不需要手动初始化数据库
 #-----------------------------------------------------------------------
-book_set  = OrderedDict({
+g_book_set  = OrderedDict({
     '新华书店':[
-        {
-            '检索号':'XH_1234567',
-            '书名':'《新华书店管理手册》',
-            '出版社':'新华出版社',
-            '出版时间':'2020-05-30',
-            '类别':'管理类',
-            '定价':"20.00",
-            '作者':'佚名',
-            '余量':"100",
-        },
-        {
-            '检索号':'XH_1234568',
-            '书名':'《三国演义》',
-            '出版社':'中华书局',
-            '出版时间':'2010-03-10',
-            '类别':'文学小说类',
-            '定价':"30.00",
-            '作者':'罗贯中',
-            '余量':"10",
-        },
+#        {
+#            '检索号':'XH_1234567',
+#            '书名':'《新华书店管理手册》',
+#            '出版社':'新华出版社',
+#            '出版时间':'2020-05-30',
+#            '类别':'管理类',
+#            '定价':"20.00",
+#            '作者':'佚名',
+#            '余量':"100",
+#        },
+#        {
+#            '检索号':'XH_1234568',
+#            '书名':'《三国演义》',
+#            '出版社':'中华书局',
+#            '出版时间':'2010-03-10',
+#            '类别':'文学小说类',
+#            '定价':"30.00",
+#            '作者':'罗贯中',
+#            '余量':"10",
+#        },
     ],
     
-    '文轩新华书店':[],
+    '新华文轩书店':[],
     
     '钟楼书店':[],
     
@@ -110,7 +119,7 @@ select_menu_sys = OrderedDict({
 #书店列表
 book_store = [
     '新华书店',
-    '文轩新华书店',
+    '新华文轩书店',
     '钟楼书店',
     '1小时书屋',
     '伴清晨诗文',
@@ -165,6 +174,8 @@ def book_traversal_store(store_lib=[]):
 #功能函数：书店书籍遍历，系统总入口
 #-----------------------------------------------------------------------
 def book_traversal_sys():
+    global g_book_set
+    book_set = g_book_set
     print("-------------------------------------")
     for book_store_name in book_store:
         if book_store_name in book_set.keys():
@@ -223,7 +234,9 @@ def book_add_to_store(store='', book={}):
     if not book or not isinstance(book, dict):
         print("无效的书籍")
         return False
-                
+        
+    global g_book_set    
+    book_set = g_book_set            
     #简单起见，遍历索引号，根据索引号确定是新增书籍还是原有书籍统计增加
     for book_ref in book_set[store]:
         #已有书籍本数增加即可（其他参数不关心不修改）
@@ -272,7 +285,9 @@ def book_borrow_store_with_search_num(store='', search_seq=''):
     if not store or store not in book_store:
         print("invalid book store" + store)
         return False
-
+        
+    global g_book_set    
+    book_set = g_book_set
     #遍历指定书店的所有书，找到指定检索号的书
     books = book_set[store]
     for book_ref in books:
@@ -332,8 +347,10 @@ def book_find_from_store_with_attr(store='', attr='', value=''):
     if not attr or attr not in book_attr:
         print("invalid book attr" + attr)
         return False
-
+        
+    global g_book_set
     count = 0
+    book_set = g_book_set
     #遍历指定书店的所有书，找到指定属性的所有书
     books = book_set[store]
     for book_ref in books:
@@ -379,6 +396,8 @@ def book_modify_store(store='', search_seq=''):
         return False
 
     #遍历指定书店的所有书，找到指定检索号的书
+    global g_book_set
+    book_set = g_book_set
     books = book_set[store]
     for book_ref in books:
         if book_ref["检索号"] == search_seq:
@@ -413,11 +432,40 @@ def book_modify_sys():
 #-----------------------------------------------------------------------
 #功能函数：退出书店，系统总入口
 #-----------------------------------------------------------------------
-def book_quit_sys(customer_name):
-    print("-------------------------------------")
-    print(customer_name + "正在退出图书管理系统，请稍等!")
-    print("-------------------------------------")
+def book_quit_sys(customer_name, file_name):
+    global g_book_set
+    book_set = g_book_set
+    try:
+        with open(file_name, 'w', encoding='utf-8') as file_object:
+            print("-------------------------------------")
+            print(customer_name + "正在退出图书管理系统，请稍等!")
+            json.dump(book_set, file_object)
+            print("-------------------------------------")
+            print("json dump dictionary to " + file_name + " succeed!")
+    except FileNotFoundError:
+        print(file_name + "file or dirctory is not exist")
 
+#-----------------------------------------------------------------------
+#功能函数：进入书店，初始化系统总入口
+#-----------------------------------------------------------------------       
+def book_system_init(customer_name='', file_name=''):
+    global g_book_set
+    try:
+        with open(file_name, 'r', encoding='utf-8') as file_object:
+            print("-------------------------------------")
+            print(customer_name + "正在初始化图书管理系统，请稍等!")
+            print("-------------------------------------")
+            
+            json_str = file_object.read()
+            if len(json_str) > 0:
+                g_book_set = json.loads(json_str)
+                print("json load dictionary to " + file_name + " succeed!")
+            else:
+                print("没有库存数据!!")
+                return True
+    except FileNotFoundError:
+        print(file_name + "file or dirctory is not exist")
+        
 #-----------------------------------------------------------------------
 #主菜单入口，系统菜单处理逻辑
 #-----------------------------------------------------------------------
@@ -426,10 +474,15 @@ def book_main(customer_name=''):
         customer_name = '游客'
     print(customer_name + "，欢迎进入全国书籍检索网")
 
+    #系统初始化
+    book_system_init(customer_name, g_json_file_name)
+
+    #系统菜遍历范围计算
     start_select = 0
     end_select = len(select_menu_sys) - 1
     range_str = '(' + str(start_select) + '~' + str(end_select) + '):'
 
+    #系统菜单
     book_menu_sys()
     menu_choose = True
     while menu_choose:
@@ -457,7 +510,7 @@ def book_main(customer_name=''):
         elif select_menu_sys[choose] == "书籍信息修正":
             book_modify_sys()
         elif select_menu_sys[choose] == "退出图书管理系统":
-            book_quit_sys(customer_name)
+            book_quit_sys(customer_name, g_json_file_name)
             menu_choose = False
 #入口函数         
 book_main()
