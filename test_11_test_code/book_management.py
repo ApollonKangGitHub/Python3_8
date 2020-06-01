@@ -1,17 +1,13 @@
 # "coding:utf-8"
 #
 #***********************************************************************
-#    Time           :2020年5月31日15:07:49
+#    Time           :2020年6月1日20:06:13
 #    Author         :Kangruojin
 #    Email          :mailbox_krj@163.com
 #    Compile        :Python3.8
 #    version        :1.1
-#    Description    :函数测试（完善test_07_while_input.py的书籍管理系统）
-#    FileName       :test_08_book_management.py
-#    Modify         :2020年5月31日18:13:06
-#                        使用Python的collections库OrderedDict类优化
-#                    2020年5月31日23:12:37
-#                         使用json优化文件操作
+#    Description    :用于测试用例测试
+#    FileName       :book_management.py
 #***********************************************************************
 import json
 from collections import OrderedDict
@@ -365,6 +361,7 @@ def book_find_from_store_with_attr(store='', attr='', value=''):
 #-----------------------------------------------------------------------
 def book_find_from_store_set_with_attr(store='', attr='', value=''):
     total_count = 0
+    
     if store and store not in book_store:
         print("invalid book store" + store)
         return False
@@ -376,7 +373,7 @@ def book_find_from_store_set_with_attr(store='', attr='', value=''):
     if not value:
         print("invalid value")
         return False
-        
+           
     #指定单个书店查找
     if store:
         book_find_from_store_with_attr(store, attr, value) 
