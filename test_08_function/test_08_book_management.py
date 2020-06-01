@@ -339,15 +339,7 @@ def book_borrow_sys():
 #-----------------------------------------------------------------------
 #功能函数：从指定书店检索指定属性的书籍
 #-----------------------------------------------------------------------
-def book_find_from_store_with_attr(store='', attr='', value=''):
-    if not store or store not in book_store:
-        print("invalid book store" + store)
-        return False
-
-    if not attr or attr not in book_attr:
-        print("invalid book attr" + attr)
-        return False
-        
+def book_find_from_store_with_attr(store='', attr='', value=''): 
     global g_book_set
     count = 0
     book_set = g_book_set
@@ -359,15 +351,43 @@ def book_find_from_store_with_attr(store='', attr='', value=''):
             book_display_one(book_ref, store)
 
     if count > 0:
-        print("检索到书籍[" + attr + "]" 
-            + "=[" + value + "]的总余量为：" 
+        print(store + "检索到书籍[" + attr + "]" 
+            + "=[" + value + "]的余量为：" 
             + str(count) + "（本/册）")
-        return True
+        return count
     else:
         #遍历完统计为0则未找到
-        print("未检索到书籍[" + attr + "]" + "=[" + value + "]")
+        print(store + "未检索到书籍[" + attr + "]" + "=[" + value + "]")
+        return 0
+
+#-----------------------------------------------------------------------
+#功能函数：从所有书店检索指定属性的书籍
+#-----------------------------------------------------------------------
+def book_find_from_store_set_with_attr(store='', attr='', value=''):
+    total_count = 0
+    if store and store not in book_store:
+        print("invalid book store" + store)
         return False
 
+    if not attr or attr not in book_attr:
+        print("invalid book attr" + attr)
+        return False
+    
+    #指定单个书店查找
+    if store:
+        book_find_from_store_with_attr(store, attr, value) 
+        return True
+    
+    #未指定书店，在所有书店查找    
+    for store in book_store:
+        total_count += book_find_from_store_with_attr(store, attr, value) 
+    
+    #遍历所有书店的话，打印一下总数       
+    print("检索到书籍[" + attr + "]" 
+            + "=[" + value + "]的总余量为：" 
+            + str(total_count) + "（本/册）")
+    return True
+    
 #-----------------------------------------------------------------------
 #功能函数：书店书籍检索，系统总入口
 #-----------------------------------------------------------------------
@@ -378,9 +398,9 @@ def book_find_sys():
     attr = input("请从以上属性中选择书籍检索类型：").strip()
     value = input("请输入要检索类型对应的名字/值：").strip()
     if attr in book_attr:
-        book_find_from_store_with_attr(store_name, attr, value)
+        book_find_from_store_set_with_attr(store_name, attr, value)
     else:
-        print("无效的输入:" + choose)
+        print("无效的输入:" + str(value))
     print("-------------------------------------")
     
 #-----------------------------------------------------------------------
@@ -436,10 +456,12 @@ def book_quit_sys(customer_name, file_name):
     global g_book_set
     book_set = g_book_set
     try:
-        with open(file_name, 'w', encoding='utf-8') as file_object:
+        with open(file_name, 'w') as file_object:
             print("-------------------------------------")
             print(customer_name + "正在退出图书管理系统，请稍等!")
-            json.dump(book_set, file_object)
+            #指定dump时用原始中文，而非‘\u65b0’格式的字符：
+            #dump加参数：‘ensure_ascii = False’
+            json.dump(book_set, file_object, ensure_ascii=False)
             print("-------------------------------------")
             print("json dump dictionary to " + file_name + " succeed!")
     except FileNotFoundError:
@@ -451,7 +473,7 @@ def book_quit_sys(customer_name, file_name):
 def book_system_init(customer_name='', file_name=''):
     global g_book_set
     try:
-        with open(file_name, 'r', encoding='utf-8') as file_object:
+        with open(file_name, 'r') as file_object:
             print("-------------------------------------")
             print(customer_name + "正在初始化图书管理系统，请稍等!")
             print("-------------------------------------")
@@ -462,7 +484,6 @@ def book_system_init(customer_name='', file_name=''):
                 print("json load dictionary to " + file_name + " succeed!")
             else:
                 print("没有库存数据!!")
-                return True
     except FileNotFoundError:
         print(file_name + "file or dirctory is not exist")
         
