@@ -33,10 +33,10 @@ def title_test(test_title_str = "default test"):
 #图书管理系统的简单测试用例
 #核实结果为 a == b    :assertEqual(a,b)
 #核实结果为 a != b    :assertNotEqual(a,b)
-#核实结果为 True    :assertTrue(a)
-#核实结果为 False    :assertFalse(a)
-#核实item在list中    :assertIn(item,list)
-#核实item不再list中    :assertNotIn(item,list)
+#核实结果为 True      :assertTrue(a)
+#核实结果为 False     :assertFalse(a)
+#核实item在list中     :assertIn(item,list)
+#核实item不再list中   :assertNotIn(item,list)
 #每一个函数都可以创建多个用例，避免程序修改后需要手动一个个去测试
 #但是这种测试方法是白盒测试，针对函数/类，可以直接访问程序的数据
 #-----------------------------------------------------------------------
