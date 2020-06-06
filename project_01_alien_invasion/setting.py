@@ -17,20 +17,26 @@ class Setting():
         self.screen_color = "灰色"
         
         #飞船速率
-        self.ship_speed = 2.5
+        self.ship_speed = 1.1
+        self.ship_bullets_group_num = 2
         
         #子弹,修改子弹余量、宽度、长度、发射间隔就可以产生大招
         #可以根据蓄能，临时修改子弹相关参数（在子弹对象中修改）
         #发射完大招后再恢复该默认的子弹参数
         self.bullet = {
-            "speed":0.5,
-            "width":5,
-            "height":10,
-            "color":"红色",        #子弹颜色
-            "limit":10,            #弹药库容量
-            "interval":150,        #发射间隔
-            "pos_diff":15        #子弹和飞船中心的坐标差
+            "speed"            :0.5,        #子弹速度
+            "width"            :2,          #子弹宽度
+            "height"           :10,         #子弹高度
+            "color"            :"红色",     #子弹颜色
+            "limit"            :10,         #弹药库容量
+            "interval"         :150,        #发射间隔
+            "pos_diff"         :15          #子弹和飞船中心的坐标差
         }
         
+        #外星人属性
+        self.alien = {
+            "speed_x"          :0.2,       #外星人横向速度
+            "speed_y"          :0.1,       #外星人纵向速度
+        }
     def get_screen_size(self):
         return (self.screen_width, self.screen_high)

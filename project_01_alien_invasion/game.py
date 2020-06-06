@@ -18,6 +18,7 @@ import surface
 import pygame
 import ship
 from bullet import Bullet
+from alien import Alien
 
 #-----------------------------------------------------------------------
 #按键按下处理
@@ -34,7 +35,8 @@ def event_keydown_check(event, ship, screen):
     elif event.key == pygame.K_SPACE:
         for bullets in ship.bullets_group:
             ship.__fire__(bullets, True) 
-            
+    elif event.key == pygame.K_q:
+        sys.exit()      
 #-----------------------------------------------------------------------
 #按键松开处理
 #-----------------------------------------------------------------------
@@ -80,6 +82,8 @@ def update_screen(screen, settings, ship):
     ship.bullet_fire(screen, settings)
     #子弹状态更新（超出屏幕销毁，否则绘制到screen）
     ship.bullet_update()
+    #创建外星人，绘制外星人（外星人绘制覆盖在子弹上面）
+    alien = Alien(settings.alien, screen)
+    alien.__blitme__()
     #绘制最新屏幕（刷新）
     pygame.display.flip()
-        

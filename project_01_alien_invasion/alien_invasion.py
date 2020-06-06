@@ -30,6 +30,10 @@ import ship
 import game
 from setting import Setting
 
+#弹药库
+global bullets_group
+bullets_group = []
+
 #-----------------------------------------------------------------------
 #游戏初始化和处理主逻辑
 #-----------------------------------------------------------------------
@@ -44,7 +48,8 @@ def aline_invasion_game_handle():
     pygame.display.set_caption("疯狂外星人")
 
     #弹药库创建（可根据游戏难度，修改弹药库个数）
-    bullets_group = [Group(), Group()]
+    for index in range(0, settings.ship_bullets_group_num):
+        bullets_group.append(Group())
 
     #在screen上创建一个飞船
     new_ship = ship.Ship(settings, screen, bullets_group)
@@ -56,7 +61,5 @@ def aline_invasion_game_handle():
 
         #处理屏幕与飞船绘制
         game.update_screen(screen, settings, new_ship)
-        
-
 #启动游戏
 aline_invasion_game_handle()

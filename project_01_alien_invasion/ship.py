@@ -36,7 +36,6 @@ class Ship():
             fire_freq = settings.bullet["interval"] 
         
         #多个发射器组的子弹库信息
-        print(str(type(groups)))
         self.bullets_group = []
         for bulltes in groups:
             bulltes_tmp = {
@@ -63,21 +62,6 @@ class Ship():
         #飞船位置为小数值
         self.posx = float(self.rect.centerx)
         self.posy = float(self.rect.bottom)
-        
-        print("ship half_width :" + str(self.half_width))
-        print("ship half_height:" + str(self.half_height))
-        print("ship left       :" + str(self.rect.left))
-        print("ship right      :" + str(self.rect.right))    
-        print("ship top        :" + str(self.rect.top))
-        print("ship bottom     :" + str(self.rect.bottom))
-        print("ship centerx    :" + str(self.rect.centerx))
-        print("ship centery    :" + str(self.rect.centery))
-        print("screen left     :" + str(self.screen_rect.left))
-        print("screen right    :" + str(self.screen_rect.right))    
-        print("screen top      :" + str(self.screen_rect.top))
-        print("screen bottom   :" + str(self.screen_rect.bottom))
-        print("screen centerx  :" + str(self.screen_rect.centerx))
-        print("screen centery  :" + str(self.screen_rect.centery))
 
     #-------------------------------------------------------------------
     #飞船绘制
@@ -159,12 +143,16 @@ class Ship():
             bullets = group[group_idx]
             #根据子弹库的弹药发射周期进行每个弹药库子弹位置计算和添加
             if self.__fire_status__(bullets):
-                #注意：每次遍历要用副本
+                #注意：每次遍历要用副本（但也只是一级深拷贝，对于二级依旧是引用）
                 bullet = settings.bullet.copy()
-                if group_idx % 2 == 0:
+                
+                if (len(group) % 2 == 1) and (group_idx == 0):
+                    delta = 0
+                elif group_idx % 2 == 0:
                     delta = 0 - bullet["pos_diff"]
                 else:
                     delta = bullet["pos_diff"]
+                
                 bullet["pos_diff"] = delta * (group_idx / 2 + 1)
                 
                 #创建新子弹，并将新子弹放进对应子弹库
