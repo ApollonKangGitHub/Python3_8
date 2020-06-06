@@ -27,7 +27,7 @@ class Ship():
 
         #每艘飞船初始化位置（屏幕中央）
         self.rect.centerx = self.screen_rect.centerx     #屏幕中间
-        self.rect.bottom = self.screen_rect.bottom        #屏幕底部
+        self.rect.bottom = self.screen_rect.bottom       #屏幕底部
          
         #开火状态、弹药统计、发射频率等参数
         if 1 > settings.bullet["interval"]:
@@ -136,20 +136,19 @@ class Ship():
     #-------------------------------------------------------------------
     #飞船弹药库子弹发射
     #-------------------------------------------------------------------
-    def bullet_fire(self, screen, settings):
+    def bullet_fire(self, screen, bullet_attr):
         #遍历每个发射器
         group = self.bullets_group
         for group_idx in range(0, len(group)):
             bullets = group[group_idx]
             #根据子弹库的弹药发射周期进行每个弹药库子弹位置计算和添加
             if self.__fire_status__(bullets):
-                #注意：每次遍历要用副本（但也只是一级深拷贝，对于二级依旧是引用）
-                bullet = settings.bullet.copy()
-                
+                #注意：用副本（防止数据修改对其他子弹始化情况有影响）
+                bullet = bullet_attr.copy()
                 if (len(group) % 2 == 1) and (group_idx == 0):
                     delta = 0
                 elif group_idx % 2 == 0:
-                    delta = 0 - bullet["pos_diff"]
+                    delta = -bullet["pos_diff"]
                 else:
                     delta = bullet["pos_diff"]
                 

@@ -12,10 +12,12 @@
 class Setting():
     def __init__(self):
         #屏幕设置
-        self.screen_width = 500
-        self.screen_high = 800
-        self.screen_color = "灰色"
-        
+        self.screen = {
+            "width"            :1200,
+            "height"           :800,
+            "color"            :"灰色",
+        }
+
         #飞船速率
         self.ship_speed = 1.1
         self.ship_bullets_group_num = 2
@@ -35,8 +37,11 @@ class Setting():
         
         #外星人属性
         self.alien = {
-            "speed_x"          :0.2,       #外星人横向速度
-            "speed_y"          :0.1,       #外星人纵向速度
+            "speed_x"          :0.8,       #外星人横向速度
+            "speed_y"          :0.5,       #外星人纵向速度
+            "pos_x"            :0.1,       #外星人x坐标
+            "pos_y"            :0.1,       #外星人y坐标
+            "interval"         :50,        #移动周期
         }
     def get_screen_size(self):
-        return (self.screen_width, self.screen_high)
+        return (self.screen["width"], self.screen["height"])

@@ -25,6 +25,7 @@ import time
 import pygame
 from pygame.sprite import Group
 
+
 #自定义模块、类、函数导出
 import ship
 import game
