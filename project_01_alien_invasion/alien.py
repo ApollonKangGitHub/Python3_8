@@ -14,7 +14,6 @@ from pygame.sprite import Sprite
 from random import randint
 
 from surface import g_screen_color_dict as color
-from setting import Setting
 
 class Alien(Sprite):
     #外星人初始化

@@ -18,7 +18,9 @@ class Bullet(Sprite):
         #父类构造函数，python2.7和python3.8都支持的语法
         super(Bullet, self).__init__()
         self.screen = screen
+        self.new_bullet__(ship, bullet)
         
+    def new_bullet__(self, ship, bullet):
         #在（0,0）处创建一个子弹，再根据飞船位置设置子弹正确位置
         self.rect = pygame.Rect(0,0,bullet["width"],bullet["height"])
         centerx = ship.rect.centerx
@@ -37,12 +39,30 @@ class Bullet(Sprite):
         self.posx -= 0
         self.rect.y = self.posy
     
+
     #子弹绘制函数
-    def draw(self):
+    def __draw__(self):
         pygame.draw.rect(self.screen, color[self.color], self.rect)
         
-    def need_destroy(self):
+    #判断子弹是否需要销毁
+    def __need_destroy__(self):
         if self.rect.bottom <= 0:
             return True
         else:
             return False
+
+    #获取子弹默认强化属性(速率不能过高，可能坐标会跳过设计目标，但是可以修改发射间隔)
+    def __bullet_intensify__(self):
+        bullet_attr = {
+            "width":1000,
+            "height":2,
+            "pos_diff":0,
+            "color":"红色",
+            "speed":2.0,
+            "interval":10,
+        }
+        return bullet_attr
+    
+    #修改子弹属性
+    def __modify_bullet_attr__(self, ship, bullet_attr):
+        self.new_bullet__(ship, bullet_attr)

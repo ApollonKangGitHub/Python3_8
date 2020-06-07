@@ -30,10 +30,9 @@ from pygame.sprite import Group
 import ship
 import game
 from setting import Setting
-
-#弹药库
-global bullets_group
-bullets_group = []
+from game_stat import GameStats
+from surface import surface_screen_color_draw
+from button import Button
 
 #-----------------------------------------------------------------------
 #游戏初始化和处理主逻辑
@@ -48,19 +47,44 @@ def aline_invasion_game_handle():
     screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption("疯狂外星人")
 
-    #弹药库创建（可根据游戏难度，修改弹药库个数）
-    for index in range(0, settings.ship_bullets_group_num):
-        bullets_group.append(Group())
-
-    #在screen上创建一个飞船
-    new_ship = ship.Ship(settings, screen, bullets_group)
-
+    status = GameStats(settings)
+    new_ship = game.create_new_ship(screen, settings)
+    
+    #创建PLAY按钮
+    button_attr = settings.button
+    button_attr["text_msg"] = "PLAY"
+    play_bubtton = Button(screen, button_attr)
+    
+    button_attr["text_msg"] = "STOP"
+    stop_bubtton = Button(screen, button_attr)
+        
     #游戏主循环
     while True:
+        #屏幕背景色颜色绘制
+        screen_attr = settings.screen.copy() 
+        surface_screen_color_draw(screen, screen_attr["color"])
+        
         #处理pygame系统事件
-        game.event_traverl_deal(screen, new_ship)
+        game.event_traverl_deal(screen, new_ship, play_bubtton, status)
+        
+        #暂停（提示，按钮不可按）
+        if status.game_stop:
+            stop_bubtton.__draw__()
+            pygame.display.flip()
+            continue
+        
+        if not status.game_over:
+            #处理外星人、子弹、飞船在屏幕中的位置以及相关逻辑
+            game.update_game_status(screen, settings, new_ship, status)
+        
+        #游戏结束则绘制按钮并处理一些统计信息等数据
+        if status.game_over:
+            status.___reset_game_status__()
+            new_ship.__ship_reset__()
+            play_bubtton.__draw__()
+                     
+        #绘制最新屏幕（刷新）
+        pygame.display.flip()
 
-        #处理屏幕与飞船绘制
-        game.update_screen(screen, settings, new_ship)
 #启动游戏
 aline_invasion_game_handle()
