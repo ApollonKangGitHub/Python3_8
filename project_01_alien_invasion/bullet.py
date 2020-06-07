@@ -10,7 +10,7 @@
 #    FileName       :Bullet.py
 #***********************************************************************
 import pygame
-from surface import g_screen_color_dict as color
+from surface import surface_color_convert as color_convert
 from pygame.sprite import Sprite
 
 class Bullet(Sprite):
@@ -30,7 +30,7 @@ class Bullet(Sprite):
         #保存子弹信息
         self.posx = float(self.rect.x)
         self.posy = float(self.rect.y)
-        self.color = bullet["color"]
+        self.color = color_convert(bullet["color"])
         self.speed = bullet["speed"]
 
     #子弹移动函数（覆写父类函数）
@@ -42,7 +42,7 @@ class Bullet(Sprite):
 
     #子弹绘制函数
     def __draw__(self):
-        pygame.draw.rect(self.screen, color[self.color], self.rect)
+        pygame.draw.rect(self.screen, self.color, self.rect)
         
     #判断子弹是否需要销毁
     def __need_destroy__(self):
@@ -54,12 +54,12 @@ class Bullet(Sprite):
     #获取子弹默认强化属性(速率不能过高，可能坐标会跳过设计目标，但是可以修改发射间隔)
     def __bullet_intensify__(self):
         bullet_attr = {
-            "width":1000,
-            "height":2,
-            "pos_diff":0,
+            "width":10,
+            "height":400,
+            "pos_diff":15,
             "color":"红色",
-            "speed":2.0,
-            "interval":10,
+            "speed":40.0,
+            "interval":4,
         }
         return bullet_attr
     

@@ -10,16 +10,6 @@
 #    FileName       :surface.py
 #***********************************************************************
 
-#-----------------------------------------------------------------------
-#前期工作：确保python安装、pygame安装
-#升级pip（不升级也可以，只要确保安装了pip即可）
-#    python -m pip install --upgrade pip
-#查看version
-#    python -m pip --version
-#执行下载安装pygame模块操作
-#    python -m pip install pygame
-#-----------------------------------------------------------------------
-
 #导出pygame模块
 import pygame
 

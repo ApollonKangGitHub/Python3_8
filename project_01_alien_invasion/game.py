@@ -10,6 +10,7 @@
 #    FileName       :game.py
 #***********************************************************************
 import pygame
+import json
 import sys
 import bullet
 from pygame.sprite import Group
@@ -24,14 +25,50 @@ from alien import Alien
 global bullets_group
 global g_aliens
 global g_mouse_play_down
+
 g_mouse_play_down = False
 bullets_group = []
 g_aliens = Group()
 
 #-----------------------------------------------------------------------
+#退出保存信息处理：
+#保存和初始化的操作，可以优化写成一个类，关于需要保存的信息都在类中处理
+#而保存信息与初始化恢复信息的逻辑基本上可以不变
+#-----------------------------------------------------------------------
+def game_quit_deal(game_status, settings):
+    #游戏退出前保存部分信息
+    try:
+        filename = settings.save_file_path
+        with open(filename, 'w+') as save_obj:
+            json.dump(game_status.game_score_highest, save_obj)
+    except FileNotFoundError:
+        print("dump info failed, not exist " + str(filename))
+    sys.exit()
+    
+#-----------------------------------------------------------------------
+#登录初始化信息处理
+#-----------------------------------------------------------------------
+def game_init_deal(game_status, settings):
+    #游戏退出前保存部分信息
+    higest_score = 0
+    game_status.game_score_highest = 0
+    
+    try:
+        filename = settings.save_file_path
+        with open(filename, 'r') as save_obj:
+            json_str = save_obj.read()
+            print(json_str)
+            print(len(json_str))
+            if len(json_str) > 0:
+                higest_score = int(json.loads(json_str))
+                game_status.game_score_highest = higest_score
+    except FileNotFoundError:
+        print("load info failed, not exist " + str(filename))
+
+#-----------------------------------------------------------------------
 #按键按下处理
 #-----------------------------------------------------------------------
-def event_keydown_check(event, ship, screen, game_status):
+def event_keydown_check(event, ship, screen, game_status, settings):
     if event.key == pygame.K_LEFT:
         ship.__move__(left=True)
     elif event.key == pygame.K_RIGHT:
@@ -44,9 +81,10 @@ def event_keydown_check(event, ship, screen, game_status):
         for bullets in ship.bullets_group:
             ship.__fire__(bullets, True) 
     elif event.key == pygame.K_q:
-        sys.exit()   
+        game_quit_deal(game_status, settings)   
     elif event.key == pygame.K_s:
         game_status.game_stop = not game_status.game_stop
+        
 #-----------------------------------------------------------------------
 #按键松开处理
 #-----------------------------------------------------------------------
@@ -62,6 +100,7 @@ def event_keyup_check(event, ship, screen):
     elif event.key == pygame.K_SPACE:
         for bullets in ship.bullets_group:
             ship.__fire__(bullets, False)         
+            
 #-----------------------------------------------------------------------
 #事件遍历与处理
 #-----------------------------------------------------------------------
@@ -74,14 +113,14 @@ def check_mouse_down_pos(status, button, pos_x, pos_y):
 #-----------------------------------------------------------------------
 #事件遍历与处理
 #-----------------------------------------------------------------------
-def event_traverl_deal(screen, ship, button, status):
+def event_traverl_deal(settings, screen, ship, button, status):
     #遍历pygame事件，处理事件
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            sys.exit()
+            game_quit_deal(status, settings)
         #按下根据按下具体键值更新移动标志
         elif event.type == pygame.KEYDOWN:
-            event_keydown_check(event, ship, screen, status)
+            event_keydown_check(event, ship, screen, status, settings)
         #按下根据按下具体键值更新移动标志
         elif event.type == pygame.KEYUP:
             event_keyup_check(event, ship, screen)
@@ -95,6 +134,7 @@ def event_traverl_deal(screen, ship, button, status):
             if g_mouse_play_down:
                 g_mouse_play_down = False
                 status.game_over = False
+                
 #-------------------------------------------------------------------
 #新飞船创建
 #-------------------------------------------------------------------
@@ -126,14 +166,14 @@ def bullet_fire(ship, screen, bullet_attr):
             else:
                 delta = bullet["pos_diff"]
             
-            bullet["pos_diff"] = delta * (group_idx / 2 + 1)
-            
             #创建新子弹，并将新子弹放进对应子弹库
+            bullet["pos_diff"] = delta * (group_idx / 2 + 1)
             new_bullet = Bullet(bullet, screen, ship)
             
             #如果飞船强化器到来，则强化子弹
             if ship.__is_intensify__():
                 bullet = new_bullet.__bullet_intensify__()
+                bullet["pos_diff"] = delta * (group_idx / 2 + 1)
                 new_bullet.__modify_bullet_attr__(ship, bullet)
             bullets["bullets"].add(new_bullet)
             
@@ -156,7 +196,7 @@ def bullet_update(ship):
 #-------------------------------------------------------------------
 #检查飞船离开屏幕则销毁飞船(并统计逃离的外星人个数，超过指定个数则游戏结束)
 #-------------------------------------------------------------------
-def check_aliens_leave_screen(aliens, screen, game_status):
+def check_aliens_leave_screen(ship, aliens, screen, game_status):
     screen_rect = screen.get_rect()
     limit = game_status.get_away_limit
     for alien in aliens:
@@ -165,11 +205,16 @@ def check_aliens_leave_screen(aliens, screen, game_status):
             aliens.remove(alien)
             if limit <= game_status.alien_get_away_count:
                 game_status.game_over = True
+                ship_aliens_clear(ship, aliens)
             
 #-----------------------------------------------------------------------
 #外星人群创建
 #-----------------------------------------------------------------------
-def create_aliens(screen, aliens, screen_attr, alien_attr):
+def create_aliens(screen, aliens, settings):
+    screen_attr = settings.screen.copy()
+    alien_attr = settings.alien.copy()
+    bullet_attr = settings.bullet.copy()
+
     if len(aliens) == 0:
         #生成临时外星人，让获取外星人width和height
         alien = Alien(alien_attr, screen)
@@ -187,7 +232,10 @@ def create_aliens(screen, aliens, screen_attr, alien_attr):
                 alien_attr["pos_y"] = float((row_idx + 1) * height)
                 new_alien = Alien(alien_attr, screen)
                 aliens.add(new_alien)
-
+                
+        #更新setting中下一波难度属性
+        settings.increase_difficulty_attr()
+        
         #删除临时的外星人
         del alien
         
@@ -200,26 +248,47 @@ def updata_aliens(aliens, screen):
         alien.__blitme__()
 
 #-----------------------------------------------------------------------
+#清空外星人、飞船、子弹
+#-----------------------------------------------------------------------         
+def ship_aliens_clear(ship, aliens):
+   #清空子弹
+    for bullets in ship.bullets_group:
+        bullets["bullets"].empty()
+        
+    #清空外星人
+    aliens.empty()
+    
+    #飞船恢复中间位置
+    ship.__ship_reset__()
+    sleep(0.5)
+    
+#-----------------------------------------------------------------------
 #飞船与外星人相撞
 #-----------------------------------------------------------------------      
-def ship_hit_handle(settings, game_status, screen, ship, aliens):
+def ship_hit_handle(game_status, ship, aliens):
+    ship_aliens_clear(ship, aliens)
+    
+    #如果无备用飞机则游戏结束
     game_status.ships_death += 1
-    print("@@death:" + str(game_status.ships_death))
-    if game_status.ships_limit >= game_status.ships_death:
-        print("##death:" + str(game_status.ships_death))
-        #清空子弹
-        for bullets in ship.bullets_group:
-            bullets["bullets"].empty()
-            
-        #清空外星人
-        aliens.empty()
-        
-        #飞船恢复中间位置
-        ship.__ship_reset__()
-        sleep(0.5)
-    else:
+    if game_status.ships_limit < game_status.ships_death:
         game_status.game_over = True
+     
+def game_over_check(status, ship, play_button, settings):
+    if status.game_over:
+        status.___reset_game_status__()
+        ship.__ship_reset__()
+        play_button.__draw__()
+        pygame.mouse.set_visible(True)
+        settings.__init_speed_attr__()
+        settings.__init_interval_attr__()
+    else:
+        pygame.mouse.set_visible(False)
         
+def calc_update_score(collisions, game_status):
+    for aliens in collisions.values():
+        for alien in aliens:
+            game_status.__kill_scoret_cnt__(alien.y)
+                        
 #-----------------------------------------------------------------------
 #处理外星人、子弹、飞船在屏幕中的位置以及相关逻辑
 #-----------------------------------------------------------------------
@@ -227,8 +296,6 @@ def update_game_status(screen, settings, ship, game_status):
     global g_aliens
     
     #注意：用副本（但也只是一级深拷贝，对于二级依旧是引用）
-    screen_attr = settings.screen.copy()
-    alien_attr = settings.alien.copy()
     bullet_attr = settings.bullet.copy()
 
     #更新飞船坐标更信息
@@ -246,17 +313,19 @@ def update_game_status(screen, settings, ship, game_status):
         collisions = pygame.sprite.groupcollide( \
             bullets["bullets"], g_aliens, True, True)
         #杀死外星人统计
-        ship.__kill_object_cnt__(len(collisions))
+        if len(collisions) > 0:
+            ship.__kill_object_cnt__(len(collisions))
+            calc_update_score(collisions, game_status)
         
     #创建外星人
-    create_aliens(screen, g_aliens, screen_attr, alien_attr)
+    create_aliens(screen, g_aliens, settings)
     #外星人状态更新（移动、判断状态、外星人绘制到screen覆盖在子弹上面）
     updata_aliens(g_aliens, screen)
     
     #检测外星人和飞船之间是否碰撞,发现一个alien和ship像素有重合
     #则停止遍历返回True,否则遍历完成返回False
     if pygame.sprite.spritecollideany(ship, g_aliens):
-        ship_hit_handle(settings, game_status, screen, ship, g_aliens)
+        ship_hit_handle(game_status, ship, g_aliens)
 
     #检查外星人是否撞到屏幕底部
-    check_aliens_leave_screen(g_aliens, screen, game_status)
+    check_aliens_leave_screen(ship, g_aliens, screen, game_status)

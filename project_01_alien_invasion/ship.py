@@ -12,11 +12,15 @@
 
 #导出pygame模块
 import pygame
+from pygame.sprite  import Sprite
+
 from bullet import Bullet
 
-class Ship():
+#让Ship类继承于Sprite，以便可以将多艘飞船放在Group组中管理
+class Ship(Sprite):
     #初始化飞船并设置初始位置
     def __init__(self, settings, screen, groups):
+        super(Ship, self).__init__()
         self.screen = screen
         self.ship_attr = settings.ship
         self.bullet_attr = settings.bullet
@@ -114,7 +118,7 @@ class Ship():
     #-------------------------------------------------------------------
     def __fire__(self, bullets, status=False):
         bullets["fire_status"] = status
-    
+   
     #-------------------------------------------------------------------
     #根据飞船开火周期和弹药库容量获取实际发射状态
     #-------------------------------------------------------------------
@@ -142,12 +146,15 @@ class Ship():
     def __kill_object_cnt__(self, count=0):
         self.kill_count += count
         cycle = self.ship_attr["intensify_cycle"]
-        if (self.kill_count > 0) and (self.kill_count % cycle == 0):
-            self.intensify = True
-            self.intens_time = 20
+        try:
+            if (self.kill_count > 0) and (self.kill_count % cycle == 0):
+                self.intensify = True
+                self.intens_time = self.ship_attr["intensify_num"]
+        except:
+            print("eception cycle" + str(cycle)) 
             
     #-------------------------------------------------------------------
-    #强化标志获取
+    #强化标志获取(可优化新增强化储能进度条，且用按键控制强化输出，而非每次自动强化)
     #-------------------------------------------------------------------
     def __is_intensify__(self):
         if self.intensify:
@@ -156,10 +163,6 @@ class Ship():
             else:
                 self.intensify = False
                 self.intens_time = 0
-        
-        #print("kill_count  = " + str(self.kill_count))
-        #print("intensify   = " + str(self.intensify))
-        #print("intens_time = " + str(self.intens_time))
-        #print("------------------------------------------")
+
         return self.intensify
 
