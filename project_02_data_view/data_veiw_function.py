@@ -26,7 +26,7 @@ from time import sleep
 import matplotlib.pyplot as plt
 global g_save_path
 global g_save_tail
-g_save_path = r'./saveFig/'
+g_save_path = r'./saveFig/baseTest/'
 g_save_tail = '.png'
 
 #-----------------------------------------------------------------------
